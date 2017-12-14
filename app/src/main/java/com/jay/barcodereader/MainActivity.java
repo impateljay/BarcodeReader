@@ -1,6 +1,7 @@
 package com.jay.barcodereader;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -14,7 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -36,11 +39,16 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     private AdView mAdView;
     private RewardedVideoAd mAd;
+    private Button copy;
+    private TextView result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        copy = findViewById(R.id.btn_copy);
+        result = findViewById(R.id.text_view_result);
 
         findViewById(R.id.btn_scan).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,11 +58,32 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
                 }
             }
         });
+
+        copy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) MainActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText(getString(R.string.app_name), result.getText().toString());
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(MainActivity.this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "failed to copy result", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (result.getText().toString().trim().equalsIgnoreCase("Scan the QR code to see Result")) {
+            copy.setVisibility(View.GONE);
+        } else {
+            copy.setVisibility(View.VISIBLE);
+        }
+
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
